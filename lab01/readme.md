@@ -136,11 +136,38 @@ After executing the instruction :  movl %eax, %cr0
 0x100030:	0x00000000	0x110000bc	0x0056e8f0	0xfeeb0000
 0x100040:	0x53e58955	0x8b0cec83	0x6853085d	0xf0101980
 ```
-####Summary
-
-
-
-
+#### Summary
+> `movl %eax, %cr0`， 开启了分页机制， 使用虚拟内存。执行这条汇编指令之后，0xf0100000和0x00100000的物理地址是一样的。
+```
+Prior to enabling paging, 0x00100000 consists kernel instructions while 0xf0100000 remains empty. After paging is enabled, virtual addresses in the range 0xf0000000 through 0xf0400000 have been translated into physical addresses 0x00000000 through 0x00400000. Thus, 0xf0100000 points to the same memory as 0x00100000.
+```
+### Exercise8
+> Q:Explain the interface between printf.c and console.c. Specifically, what function does console.c export? How is this function used by printf.c?
+```
+console.c主要屏蔽硬件，提供的主要函数就是cons_putc(int c),prinf.c提供的主要函数就是cprintf(const char* fmt,...).
+cprintf函数会调用conputc函数和printfmt.c文件中的函数。我们主要使用的函数也是cprintf.
+```
+>Q:Explain the following from console.c:
+```
+1      if (crt_pos >= CRT_SIZE) {
+2              int i;
+3              memmove(crt_buf, crt_buf + CRT_COLS, (CRT_SIZE - CRT_COLS) * sizeof(uint16_t));
+4              for (i = CRT_SIZE - CRT_COLS; i < CRT_SIZE; i++)
+5                      crt_buf[i] = 0x0700 | ' ';
+6              crt_pos -= CRT_COLS;
+7      }
+```
+```
+换行
+```
+Q:For the following questions you might wish to consult the notes for Lecture 2. These notes cover GCC's calling convention on the x86.
+Trace the execution of the following code step-by-step:
+```
+int x = 1, y = 3, z = 4;
+cprintf("x %d, y %x, z %d\n", x, y, z);
+```
+- In the call to cprintf(), to what does fmt point? To what does ap point?
+- List (in order of execution) each call to cons_putc, va_arg, and vcprintf. For cons_putc, list its argument as well. For va_arg, list what ap points to before and after the call. For vcprintf list the values of its two arguments.
 
 
 
