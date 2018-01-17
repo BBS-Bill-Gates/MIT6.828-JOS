@@ -252,3 +252,60 @@ Stack backtrace:
   ebp f010fff8  eip f010003d  args 00000000 00000000 0000ffff 10cf9a00 0000ffff
          kern/entry.S:70: <unknown>+0
 ```
+#### Answer:
+> 1.在命令列表中添加该命令，与相关函数相关联。
+```
+static struct Command commands[] = {
+	{ "help", "Display this list of commands", mon_help },
+	{ "backtrace", "Display the information tracked",backtrace },
+	{ "kerninfo", "Display information about the kernel", mon_kerninfo },
+};
+```
+> 2.修改mon_backtrace为backtrace.
+```
+int 
+backtrace(int argc, char **argv, struct Trapframe *tf)
+{
+	//Your code here
+	uint32_t* ebp = (uint32_t *)read_ebp();
+	/*
+		
+	*/
+	cprintf("Stack backtrace:\n");
+	struct Eipdebuginfo info;
+	while(ebp!=0){
+		uint32_t eip = ebp[1];
+		debuginfo_eip(eip, &info);
+		cprintf("  ebp %08.x  eip %08.x  args %08.x %08.x %08.x %08.x %08.x\n\t%s:%d: %.*s+%d\n", ebp, eip,\
+				ebp[2], ebp[3], ebp[4], ebp[5], ebp[6], info.eip_file, info.eip_line, \
+				info.eip_fn_namelen, info.eip_fn_name,	eip-info.eip_fn_addr);
+		ebp =(uint32_t *)*ebp;
+	}
+	return 0;
+}
+
+```
+> 3.修改kdebug.c
+```
+...
+stab_binsearch(stabs, &lfun, &rfun, N_SLINE, addr);
+if(lline > rline){
+	return -1;
+} else {
+	info->eip_line = stabs[lline].n_desc;    //n_desc属性就是line number
+}
+...
+```
+> 4.修改init.c
+```
+void
+test_backtrace(int x)
+{
+	cprintf("entering test_backtrace %d\n", x);
+	if (x > 0)
+		test_backtrace(x-1);
+	else
+		backtrace(0, 0, 0);		//虚拟机直接先执行backtrac命令.
+	cprintf("leaving test_backtrace %d\n", x);
+}
+```
