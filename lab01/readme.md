@@ -142,6 +142,22 @@ After executing the instruction :  movl %eax, %cr0
 Prior to enabling paging, 0x00100000 consists kernel instructions while 0xf0100000 remains empty. After paging is enabled, virtual addresses in the range 0xf0000000 through 0xf0400000 have been translated into physical addresses 0x00000000 through 0x00400000. Thus, 0xf0100000 points to the same memory as 0x00100000.
 ```
 ### Exercise8
+
+> Q: We have omitted a small fragment of code - the code necessary to print octal numbers using patterns of the form "%o". Find and fill in this code fragment.
+```
+// unsigned decimal
+case 'u':
+	num = getuint(&ap, lflag);
+	base = 10;
+	goto number;
+//unsigned octal
+case 'o':
+	num = getuint(&ap, lflag);
+	base = 8;
+	goto number;
+照着unsigned decimal做
+```
+
 > Q:Explain the interface between printf.c and console.c. Specifically, what function does console.c export? How is this function used by printf.c?
 ```
 console.c主要屏蔽硬件，提供的主要函数就是cons_putc(int c),prinf.c提供的主要函数就是cprintf(const char* fmt,...).
@@ -169,8 +185,44 @@ cprintf("x %d, y %x, z %d\n", x, y, z);
 - In the call to cprintf(), to what does fmt point? To what does ap point?
 - List (in order of execution) each call to cons_putc, va_arg, and vcprintf. For cons_putc, list its argument as well. For va_arg, list what ap points to before and after the call. For vcprintf list the values of its two arguments.
 
+```
+1. fmt-->"x %d, y %x, z %d\n" , ap---->x,y,z
+2. cons_putc-->int ch, va_arg-->va_list ap, type.调用之前指向x,调用之后指向y,再调用之后指向z. vcprintf-->fmt:"x %d, y %x, z %d\n" , ap:x,y,z
+```
+>Q： Run the following code.
+   ``` 
+   unsigned int i = 0x00646c72;
+   cprintf("H%x Wo%s", 57616, &i);
+   ```
+What is the output? Explain how this output is arrived at in the step-by-step manner of the previous exercise. Here's an ASCII table that maps bytes to characters.
+The output depends on that fact that the x86 is little-endian. If the x86 were instead big-endian what would you set i to in order to yield the same output? Would you need to change 57616 to a different value?
+```
+output:He110, World
+```
+>Q:In the following code, what is going to be printed after 'y='? (note: the answer is not a specific value.) Why does this happen?
+    cprintf("x=%d y=%d", 3);
+```
+the first is 3, the second is random number
+```
+> Q:Let's say that GCC changed its calling convention so that it pushed arguments on the stack in declaration order, so that the last argument is pushed last. How would you have to change cprintf or its interface so that it would still be possible to pass it a variable number of arguments?
+```
+va_start, va_arg and va_end macros need to be changed to decrease the point every time they fetching a new argument from the stack.
+```
+### Exercise9
+> Q: Determine where the kernel initializes its stack, and exactly where in memory its stack is located. How does the kernel reserve space for its stack? And at which "end" of this reserved area is the stack pointer initialized to point to?
+```
+movl	$0x0,%ebp
+movl	$(bootstacktop),%esp
+```
+>
+### Exercise 10
+>Q:To become familiar with the C calling conventions on the x86, find the address of the test_backtrace function in obj/kern/kernel.asm, set a breakpoint there, and examine what happens each time it gets called after the kernel starts. How many 32-bit words does each recursive nesting level of test_backtrace push on the stack, and what are those words?
+```
+8 个32bit 字
+```
+### Exercise 11
+> Q:Implement the backtrace function as specified above. Use the same format as in the example, since otherwise the grading script will be confused. When you think you have it working right, run make grade to see if its output conforms to what our grading script expects, and fix it if it doesn't. After you have handed in your Lab 1 code, you are welcome to change the output format of the backtrace function any way you like.
+```
+补全代码:
 
-
-
-
-
+```
