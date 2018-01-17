@@ -268,7 +268,9 @@ backtrace(int argc, char **argv, struct Trapframe *tf)
 {
 	//Your code here
 	uint32_t* ebp = (uint32_t *)read_ebp();
-	/*将read_ebp()返回的内容强制转换成一个指针，就像是一个数组一样，这个数组的内容一次是ebp(0),eip(1),argv1(2)……， 这个思路非常新颖*/
+	/*
+		将read_ebp()返回的内容强制转换成一个指针，就像是一个数组一样，这个数组的内容一次是ebp(0),eip(1),argv1(2)……， 这个思路非常新颖
+	*/
 	cprintf("Stack backtrace:\n");
 	struct Eipdebuginfo info;
 	while(ebp!=0){
