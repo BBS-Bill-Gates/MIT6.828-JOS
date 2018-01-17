@@ -223,6 +223,32 @@ movl	$(bootstacktop),%esp
 ### Exercise 11
 > Q:Implement the backtrace function as specified above. Use the same format as in the example, since otherwise the grading script will be confused. When you think you have it working right, run make grade to see if its output conforms to what our grading script expects, and fix it if it doesn't. After you have handed in your Lab 1 code, you are welcome to change the output format of the backtrace function any way you like.
 ```
+要想理解此段代码，需先熟悉ebp, eip, 参数在内存中的排列顺序
 补全代码:
-
+int 
+mon_backtrace(int argc, char ** argv, struct Trapframe *tf){
+	uint32_t ebp = read_ebp();
+	cprintf("Stack backtrace:");
+	while(ebp!=0){
+		uint32_t eip = *(uint32_t*)(ebp+0x4);
+		cprintf("  ebp %x  eip %x args %x %x %x %x %x\n", ebp, eip,\
+			*(uint32_t *)(ebp+0x8), *(uint32_t *)(ebp+0xc),\
+			*(uint32_t *)(ebp+0x10), *(uint32_t *)(ebp+0x14),\
+			*(uint32_t *)(ebp+0x18));
+		ebp=*(uint32_t *)(ebp);
+	}
+	return 0;
+}
+```
+### Exercise 12
+Q: 输入`backstrace`,打印如下内容(补一个命令):
+```
+K> backtrace
+Stack backtrace:
+  ebp f010ff78  eip f01008ae  args 00000001 f010ff8c 00000000 f0110580 00000000
+         kern/monitor.c:143: monitor+106
+  ebp f010ffd8  eip f0100193  args 00000000 00001aac 00000660 00000000 00000000
+         kern/init.c:49: i386_init+59
+  ebp f010fff8  eip f010003d  args 00000000 00000000 0000ffff 10cf9a00 0000ffff
+         kern/entry.S:70: <unknown>+0
 ```
