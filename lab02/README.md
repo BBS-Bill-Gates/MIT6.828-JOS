@@ -232,3 +232,4 @@ mem_init(void){
  check_page_installed_pgdir();
 }
 ```
+> 注: mem_init详见文件kern/pmap.c中的函数。
