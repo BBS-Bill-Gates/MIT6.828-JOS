@@ -203,6 +203,32 @@ page_remove(pde_t *pgdir, void *va)
 ```
 void
 mem_init(void){
-
+ uint32_t ct0;
+ size_t n;
+ i386_detect_memory(); //Find out how much memory the machine has(npages & npages_basemem)
+ kern_pgdir = (pde_t *)boot_alloc(PGSIZE);
+ memset(kern_pgdir, 0, PGSIZE);
+ kern_pgdir[PDX(UVPT)] = PADDR(kern_pgdir) | PTE_U | PTE_P;
+ pages = (struct PageInfo*) boot_alloc(npage * sizeof(struct PageInfo));
+ memset(pages , 0, npage * sizeof(struct PageInfo));
+ page_init();
+ 
+ check_page_free(1);
+ check_page_alloc();
+ check_page();
+ //Now we set up virtual memory
+ boot_map_region(kern_pgdir, UPAGES, PTSIZE, PADDR(pages), PTE_U);
+ //Use the physical memory that 'bootstack' refers to as the kernel stack
+ boot_map_region(kern_pgdir, KSTACKTOP - KSTACKSIZE, KSTACKSIZE, PADDR(bootstack), PTE_W);
+ //MAP all of physical memory at KERNBASE
+ boot_map_region(kern_pgdir, KERNBASE, 0xffffffff-KERNBASE, 0, PTE_W);
+ check_kern_pgdir();
+ lcr3(PADDR(kern_pgdir));
+ check_page_free_list(0);
+ cr0 = rcr0();
+ cr0 |= CR0_PE|CR0_PG|CR0_AM|CR0_WP|CR0_NE|CR0_MP;
+ cr0 &= ~(CR0_TS|CR0_EM);
+ lcr0(cr0);
+ check_page_installed_pgdir();
 }
 ```
