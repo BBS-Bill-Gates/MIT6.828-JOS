@@ -261,16 +261,15 @@ page_init(void)
 
 	for(i=0; i<npages; i++)
 	{
-		if(i==0)
-		{
+		if(i==0){
 			pages[i].pp_ref = 1;
-		}    
-		else if(i >= npages_basemem && i < npages_basemem + num_iohole + num_alloc)
-		{
+		} else if(1 <= i && i<npages_basemem){
+			pages[i].pp_ref = 0;
+			pages[i].pp_link = page_free_list;
+			page_free_list = &pages[i];
+		} else if(IOPHYSMEM/PGSIZE <= i && i < IOPHYSMEM/PGSIZE + ((uint32_t)boot_alloc(0)-KERNBASE)/PGSIZE){
 			pages[i].pp_ref = 1;
-		}
-		else
-		{
+		} else {
 			pages[i].pp_ref = 0;
 			pages[i].pp_link = page_free_list;
 			page_free_list = &pages[i];
